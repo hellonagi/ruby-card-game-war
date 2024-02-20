@@ -8,5 +8,6 @@ class GameTest < MiniTest::Test
 
   def test_start_game
     assert_output("戦争を開始します。\n") { @game.start_game }
+    assert_equal 2, @game.players.size
   end
 end
