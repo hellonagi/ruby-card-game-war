@@ -341,3 +341,9 @@ Performance/RedundantStringChars:
 
 Performance/StringInclude:
   Enabled: true
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
