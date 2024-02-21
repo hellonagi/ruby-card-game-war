@@ -68,12 +68,34 @@ class Game
   # 手札からカードをだす
   def draw_battle_cards(stacked_cards)
     battle_cards = []
+    a_count = 0
+    has_spade_a = false
+    has_joker = false
+
+    # 場札に
     @players.each do |player|
       draw_card = player.hand.pop
-      puts "#{player.name}のカードは#{draw_card.suit}の#{draw_card.rank}です。"
+      if draw_card.rank == :A
+        a_count += 1
+        has_spade_a = true if draw_card.suit == :スペード
+      end
+      has_joker = true if draw_card.suit == :ジョーカー
+
       stacked_cards << draw_card
       battle_cards << draw_card
     end
+
+    no_1 = a_count >= 2 && has_spade_a && !has_joker
+    battle_cards.each_with_index do |card, index|
+      card_name = "#{card.suit}の#{card.rank}"
+      if no_1 && card.rank == :A && card.suit == :スペード
+        card_name = '世界一'
+      elsif card.rank ==:JOKER
+        card_name = 'ジョーカー'
+      end
+      puts "#{@players[index].name}のカードは#{card_name}です。"
+    end
+
     battle_cards
   end
 
@@ -211,7 +233,12 @@ class Card
   def initialize(suit, rank)
     @suit = suit
     @rank = rank
-    @value = CARD_HASH[rank] || rank
+    # スペードのAの強さを100、他のマークのAの強さを99とする
+    if suit == :スペード && rank == :A
+      @value = 100
+    else
+      @value = CARD_HASH[rank] || rank
+    end
   end
 end
 

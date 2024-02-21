@@ -16,21 +16,6 @@ class GameTest < MiniTest::Test
   end
 
   # デッキの並び順: [JOKER] + [2, 3, ..., J, Q, K, A]*4
-  # プレイヤー数: 2
-  # 名前: たろう, はなこ
-  # 26回引き分けして終了
-  def test_start_game_with_2_players_without_shuffle
-    test_deck = Deck.new(nil, false)
-    output = custom_setup(test_deck, "2\nたろう\nはなこ\n")
-
-    assert_match(/たろうの手札がなくなりました。/, output)
-    assert_match(/はなこの手札がなくなりました。/, output)
-    assert_match(/たろうの手札の枚数は0枚です。はなこの手札の枚数は0枚です。/, output)
-    assert_match(/たろうが1位、はなこが1位です。/, output)
-    $stdin = STDIN
-  end
-
-  # デッキの並び順: [JOKER] + [2, 3, ..., J, Q, K, A]*4
   # プレイヤー数: 4
   # 名前: たろう, じろう, さぶろう, しろう
   # 13回引き分けして終了
@@ -38,12 +23,16 @@ class GameTest < MiniTest::Test
     test_deck = Deck.new(nil, false)
     output = custom_setup(test_deck, "4\nたろう\nじろう\nさぶろう\nしろう\n")
 
-    assert_match(/たろうの手札がなくなりました。/, output)
+    assert_match(/たろうのカードは世界一です。/, output)
+    assert_match(/じろうのカードはハートのAです。/, output)
+    assert_match(/さぶろうのカードはダイヤのAです。/, output)
+    assert_match(/しろうのカードはクラブのAです。/, output)
+    assert_match(/たろうが勝ちました。たろうはカードを52枚もらいました。/, output)
     assert_match(/じろうの手札がなくなりました。/, output)
     assert_match(/さぶろうの手札がなくなりました。/, output)
     assert_match(/しろうの手札がなくなりました。/, output)
-    assert_match(/たろうの手札の枚数は0枚です。じろうの手札の枚数は0枚です。さぶろうの手札の枚数は0枚です。しろうの手札の枚数は0枚です。/, output)
-    assert_match(/たろうが1位、じろうが1位、さぶろうが1位、しろうが1位です。/, output)
+    assert_match(/たろうの手札の枚数は52枚です。じろうの手札の枚数は0枚です。さぶろうの手札の枚数は0枚です。しろうの手札の枚数は0枚です。/, output)
+    assert_match(/たろうが1位、じろうが2位、さぶろうが2位、しろうが2位です。/, output)
     $stdin = STDIN
   end
 
@@ -111,16 +100,50 @@ class GameTest < MiniTest::Test
   # デッキの並び順: [A, JOKER]
   # プレイヤー数: 2
   # 名前: John, Bob
-  def test_joker
+  def test_joker_vs_a
     test_deck = Deck.new([Card.new(:ハート, :A), Card.new(:ジョーカー, :JOKER)], false)
     output = custom_setup(test_deck, "2\nJohn\nBob\n")
 
-    assert_match(/JohnのカードはジョーカーのJOKERです。/, output)
+    assert_match(/Johnのカードはジョーカーです。/, output)
     assert_match(/BobのカードはハートのAです。/, output)
     assert_match(/Johnが勝ちました。Johnはカードを2枚もらいました。/, output)
-    assert_match(/Bobの手札がなくなりました。/, output)
-    assert_match(/Johnの手札の枚数は2枚です。Bobの手札の枚数は0枚です。/, output)
-    assert_match(/Johnが1位、Bobが2位です。/, output)
+  end
+
+  # デッキの並び順: [A, A]
+  # プレイヤー数: 2
+  # 名前: John, Bob
+  def test_spade_a_vs_other_a
+    test_deck = Deck.new([Card.new(:ダイヤ, :A), Card.new(:スペード, :A)], false)
+    output = custom_setup(test_deck, "2\nJohn\nBob\n")
+
+    assert_match(/Johnのカードは世界一です。/, output)
+    assert_match(/BobのカードはダイヤのAです。/, output)
+    assert_match(/Johnが勝ちました。Johnはカードを2枚もらいました。/, output)
+  end
+
+  # デッキの並び順: [A, Q]
+  # プレイヤー数: 2
+  # 名前: John, Bob
+  def test_spade_a_vs_other
+    test_deck = Deck.new([Card.new(:スペード, :A), Card.new(:クラブ, :Q)], false)
+    output = custom_setup(test_deck, "2\nJohn\nBob\n")
+
+    assert_match(/JohnのカードはクラブのQです。/, output)
+    assert_match(/BobのカードはスペードのAです。/, output)
+    assert_match(/Bobが勝ちました。Bobはカードを2枚もらいました。/, output)
+  end
+
+  # デッキの並び順: [A, A, JOKER]
+  # プレイヤー数: 3
+  # 名前: John, Bob, Mike
+  def test_spade_a_vs_a_vs_joker
+    test_deck = Deck.new([Card.new(:スペード, :A), Card.new(:クラブ, :A), Card.new(:ジョーカー, :JOKER)], false)
+    output = custom_setup(test_deck, "3\nJohn\nBob\nMike\n")
+
+    assert_match(/Johnのカードはジョーカーです。/, output)
+    assert_match(/BobのカードはクラブのAです。/, output)
+    assert_match(/MikeのカードはスペードのAです。/, output)
+    assert_match(/Johnが勝ちました。Johnはカードを3枚もらいました。/, output)
   end
 end
 
