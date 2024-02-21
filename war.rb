@@ -31,20 +31,24 @@ class Game
   end
 
   def battle
+    # 場札
     stacked_cards = []
 
-    winner = nil
-    until winner
+    # 誰かの手札がなくなるまでゲームを続ける
+    loop do
       puts '戦争！'
       battle_cards = draw_battle_cards(stacked_cards)
       winner = decide_winner(battle_cards)
+      add_stacked_cards_to_winner(winner, stacked_cards)
       break if empty_hand_exists
     end
 
-    add_stacked_cards_to_winner(winner, stacked_cards)
-    announce_winner(winner)
+    show_players_hands
+    result = calculate_result
+    announce_result(result)
   end
 
+  # 手札からカードをだす
   def draw_battle_cards(stacked_cards)
     battle_cards = []
     @players.each do |player|
@@ -56,17 +60,27 @@ class Game
     battle_cards
   end
 
+  # 手札がなくなったプレイヤーがいないか確認
   def empty_hand_exists
     empty_exists = false
     @players.each do |player|
+      # 手札が0枚のとき
       if player.hand.empty?
-        puts "#{player.name}の手札がなくなりました。"
-        empty_exists = true
+        # 取った場札がなければ終了
+        if player.taken_cards.empty?
+          puts "#{player.name}の手札がなくなりました。"
+          empty_exists = true
+        # あればシャッフルして回収
+        else
+          player.hand += player.taken_cards.shuffle
+          player.taken_cards.clear
+        end
       end
     end
     empty_exists
   end
 
+  # 勝敗の判定。勝ったプレイヤーのインスタンスを返す。引き分けの場合はnilを返す。
   def decide_winner(battle_cards)
     highest_card, highest_player_index = battle_cards.each_with_index.max_by { |element, _| element.value }
     if battle_cards.count { |card| card.value == highest_card.value } >= 2
@@ -76,22 +90,46 @@ class Game
     players[highest_player_index]
   end
 
+  # 勝ったプレイヤーに場札を渡す。引き分けの場合は何もしない。
   def add_stacked_cards_to_winner(winner, stacked_cards)
-    winner.taken_cards += stacked_cards unless winner.nil?
+    unless winner.nil?
+      puts "#{winner.name}が勝ちました。#{winner.name}はカードを#{stacked_cards.size}枚もらいました。"
+      winner.taken_cards += stacked_cards
+      stacked_cards.clear
+    end
   end
 
-  def announce_winner(winner)
-    if winner
-      puts "#{winner.name}が勝ちました。"
-    else
-      puts '無効試合です。'
+  # 各Playerの手札を表示する
+  def show_players_hands
+    puts @players.map { |p| "#{p.name}の手札の枚数は#{p.hand.size + p.taken_cards.size}枚です。" }.join()
+  end
+
+  # Playerインスタンスを手札の枚数によって降順で並べる
+  def calculate_result
+    @players.sort { |a, b| b.hand.size + b.taken_cards.size <=> a.hand.size + a.taken_cards.size }
+  end
+
+  # 最終結果を表示する
+  # 同じ枚数を持つプレイヤーには同じ順位を割り当てる
+  def announce_result(result)
+    ranks = [1]
+    rank = 1
+
+    # 隣同士のプレイヤーを比較し点数が違う場合順位を下げる
+    result.each_cons(2).with_index do |(p1, p2), index|
+      if p1.hand.size != p2.hand.size
+        rank = index + 2
+      end
+      ranks << rank
     end
+
+    puts result.map.with_index { |r, i| "#{r.name}が#{ranks[i]}位" }.join('、') + 'です。'
   end
 end
 
 class Player
-  attr_reader :name, :hand
-  attr_accessor :taken_cards
+  attr_reader :name
+  attr_accessor :hand, :taken_cards
 
   def initialize(num)
     @name = "プレイヤー#{num}"
@@ -141,7 +179,7 @@ end
 class Card
   attr_reader :suit, :rank, :value
 
-  # カードの強さを判定するためのハッシュ
+  # カードの絵札を強さとして数値に変換するためのハッシュ
   CARD_HASH = { A: 99, J: 11, Q: 12, K: 13 }
 
   def initialize(suit, rank)
