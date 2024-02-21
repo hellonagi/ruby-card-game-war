@@ -6,7 +6,7 @@ require_relative 'war'
 # Deck.newの第二引数をfalseと指定することでシャッフルを無効
 class GameTest < MiniTest::Test
   # 初期状態ののしデッキ
-  # 26回引き分けが起きて終了
+  # 26回の引き分けで終了
   # デッキの並び順: [2, 3, ..., J, Q, K, A]*4
   def test_start_game_with_test_deck_1
     test_deck = Deck.new(nil, false)
@@ -18,7 +18,8 @@ class GameTest < MiniTest::Test
 
     assert_match(/プレイヤー1の手札がなくなりました。/, output)
     assert_match(/プレイヤー2の手札がなくなりました。/, output)
-    assert_match(/無効試合です。/, output)
+    assert_match(/プレイヤー1の手札の枚数は0枚です。プレイヤー2の手札の枚数は0枚です。/, output)
+    assert_match(/プレイヤー1が1位、プレイヤー2が1位です。/, output)
   end
 
   # プレイヤー1が勝利
@@ -31,7 +32,9 @@ class GameTest < MiniTest::Test
       game.start_game
     end.first
 
-    assert_match(/プレイヤー1が勝ちました。/, output)
+    assert_match(/プレイヤー2の手札がなくなりました。/, output)
+    assert_match(/プレイヤー1の手札の枚数は2枚です。プレイヤー2の手札の枚数は0枚です。/, output)
+    assert_match(/プレイヤー1が1位、プレイヤー2が2位です。/, output)
   end
 
   # プレイヤー2が勝利
@@ -44,7 +47,9 @@ class GameTest < MiniTest::Test
       game.start_game
     end.first
 
-    assert_match(/プレイヤー2が勝ちました。/, output)
+    assert_match(/プレイヤー1の手札がなくなりました。/, output)
+    assert_match(/プレイヤー1の手札の枚数は0枚です。プレイヤー2の手札の枚数は2枚です。/, output)
+    assert_match(/プレイヤー2が1位、プレイヤー1が2位です。/, output)
   end
 
   # 引き分けしてからプレイヤー1が勝利
@@ -57,8 +62,9 @@ class GameTest < MiniTest::Test
       game.start_game
     end.first
 
-    assert_match(/引き分けです。/, output)
-    assert_match(/プレイヤー1が勝ちました。/, output)
+    assert_match(/プレイヤー2の手札がなくなりました。/, output)
+    assert_match(/プレイヤー1の手札の枚数は4枚です。プレイヤー2の手札の枚数は0枚です。/, output)
+    assert_match(/プレイヤー1が1位、プレイヤー2が2位です。/, output)
   end
 end
 
