@@ -6,9 +6,10 @@ class Game
     @deck = deck
   end
 
-  def start_game(player_count: 2)
-    @player_count = player_count
+  def start_game
     # プレイヤー数だけPlayerインスタンスを作成
+    print 'プレイヤーの人数を入力してください（2〜5）: '
+    @player_count = gets.chomp.to_i
     make_players
 
     # 開始メッセージ
@@ -26,7 +27,9 @@ class Game
 
   def make_players
     @player_count.times do |i|
-      @players << Player.new(i + 1)
+      print "プレイヤー#{i + 1}の名前を入力してください: "
+      player_name = gets.chomp
+      @players << Player.new(player_name)
     end
   end
 
@@ -43,6 +46,7 @@ class Game
       break if empty_hand_exists
     end
 
+    add_taken_cards_to_hand
     show_players_hands
     result = calculate_result
     announce_result(result)
@@ -99,14 +103,22 @@ class Game
     end
   end
 
+  # 各プレイヤー場札から取ったカードを手札に加える
+  def add_taken_cards_to_hand
+    @players.each do |player|
+      player.hand += player.taken_cards
+      player.taken_cards.clear
+    end
+  end
+
   # 各Playerの手札を表示する
   def show_players_hands
-    puts @players.map { |p| "#{p.name}の手札の枚数は#{p.hand.size + p.taken_cards.size}枚です。" }.join()
+    puts @players.map { |p| "#{p.name}の手札の枚数は#{p.hand.size}枚です。" }.join()
   end
 
   # Playerインスタンスを手札の枚数によって降順で並べる
   def calculate_result
-    @players.sort { |a, b| b.hand.size + b.taken_cards.size <=> a.hand.size + a.taken_cards.size }
+    @players.sort { |a, b| b.hand.size <=> a.hand.size }
   end
 
   # 最終結果を表示する
@@ -131,8 +143,8 @@ class Player
   attr_reader :name
   attr_accessor :hand, :taken_cards
 
-  def initialize(num)
-    @name = "プレイヤー#{num}"
+  def initialize(name)
+    @name = name
     @hand = []
     @taken_cards = []
   end
