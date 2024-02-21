@@ -288,6 +288,9 @@ Style/RedundantDoubleSplatHashBraces:
 Style/ArrayIntersect:
   Enabled: true
 
+Style/WordArray:
+  Enabled: false
+
 Performance/BindCall:
   Enabled: true
 
