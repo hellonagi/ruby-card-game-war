@@ -68,12 +68,38 @@ class Game
   # 手札からカードをだす
   def draw_battle_cards(stacked_cards)
     battle_cards = []
+    a_count = 0
+    has_spade_a = false
+    has_joker = false
+
     @players.each do |player|
       draw_card = player.hand.pop
-      puts "#{player.name}のカードは#{draw_card.suit}の#{draw_card.rank}です。"
+      # Aの数をカウント、スペードのAの有無をチェック
+      if draw_card.rank == :A
+        a_count += 1
+        has_spade_a = true if draw_card.suit == :スペード
+      end
+      # ジョーカーの有無をチェック
+      has_joker = true if draw_card.suit == :ジョーカー
+
       stacked_cards << draw_card
       battle_cards << draw_card
     end
+
+    # スペードのAが「世界一」の条件を満たすかチェック
+    no_1 = a_count >= 2 && has_spade_a && !has_joker
+
+    # 条件に応じて出力を切り替える
+    battle_cards.each_with_index do |card, index|
+      card_name = "#{card.suit}の#{card.rank}"
+      if no_1 && card.rank == :A && card.suit == :スペード
+        card_name = '世界一'
+      elsif card.rank == :JOKER
+        card_name = 'ジョーカー'
+      end
+      puts "#{@players[index].name}のカードは#{card_name}です。"
+    end
+
     battle_cards
   end
 
@@ -176,6 +202,7 @@ class Deck
 
   def build_deck
     deck = []
+    deck << Card.new(:ジョーカー, :JOKER)
     SUITS.each do |suit|
       RANKS.each do |rank|
         deck << Card.new(suit, rank)
@@ -205,12 +232,17 @@ class Card
   attr_reader :suit, :rank, :value
 
   # カードの絵札を強さとして数値に変換するためのハッシュ
-  CARD_HASH = { A: 99, J: 11, Q: 12, K: 13 }
+  CARD_HASH = { A: 99, J: 11, Q: 12, K: 13, JOKER: 999 }
 
   def initialize(suit, rank)
     @suit = suit
     @rank = rank
-    @value = CARD_HASH[rank] || rank
+    # スペードのAの強さを100、他のマークのAの強さを99とする
+    if suit == :スペード && rank == :A
+      @value = 100
+    else
+      @value = CARD_HASH[rank] || rank
+    end
   end
 end
 

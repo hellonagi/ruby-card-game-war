@@ -15,22 +15,7 @@ class GameTest < MiniTest::Test
     output
   end
 
-  # デッキの並び順: [2, 3, ..., J, Q, K, A]*4
-  # プレイヤー数: 2
-  # 名前: たろう, はなこ
-  # 26回引き分けして終了
-  def test_start_game_with_2_players_without_shuffle
-    test_deck = Deck.new(nil, false)
-    output = custom_setup(test_deck, "2\nたろう\nはなこ\n")
-
-    assert_match(/たろうの手札がなくなりました。/, output)
-    assert_match(/はなこの手札がなくなりました。/, output)
-    assert_match(/たろうの手札の枚数は0枚です。はなこの手札の枚数は0枚です。/, output)
-    assert_match(/たろうが1位、はなこが1位です。/, output)
-    $stdin = STDIN
-  end
-
-  # デッキの並び順: [2, 3, ..., J, Q, K, A]*4
+  # デッキの並び順: [JOKER] + [2, 3, ..., J, Q, K, A]*4
   # プレイヤー数: 4
   # 名前: たろう, じろう, さぶろう, しろう
   # 13回引き分けして終了
@@ -38,12 +23,16 @@ class GameTest < MiniTest::Test
     test_deck = Deck.new(nil, false)
     output = custom_setup(test_deck, "4\nたろう\nじろう\nさぶろう\nしろう\n")
 
-    assert_match(/たろうの手札がなくなりました。/, output)
+    assert_match(/たろうのカードは世界一です。/, output)
+    assert_match(/じろうのカードはハートのAです。/, output)
+    assert_match(/さぶろうのカードはダイヤのAです。/, output)
+    assert_match(/しろうのカードはクラブのAです。/, output)
+    assert_match(/たろうが勝ちました。たろうはカードを52枚もらいました。/, output)
     assert_match(/じろうの手札がなくなりました。/, output)
     assert_match(/さぶろうの手札がなくなりました。/, output)
     assert_match(/しろうの手札がなくなりました。/, output)
-    assert_match(/たろうの手札の枚数は0枚です。じろうの手札の枚数は0枚です。さぶろうの手札の枚数は0枚です。しろうの手札の枚数は0枚です。/, output)
-    assert_match(/たろうが1位、じろうが1位、さぶろうが1位、しろうが1位です。/, output)
+    assert_match(/たろうの手札の枚数は52枚です。じろうの手札の枚数は0枚です。さぶろうの手札の枚数は0枚です。しろうの手札の枚数は0枚です。/, output)
+    assert_match(/たろうが1位、じろうが2位、さぶろうが2位、しろうが2位です。/, output)
     $stdin = STDIN
   end
 
@@ -107,6 +96,55 @@ class GameTest < MiniTest::Test
     assert_match(/Johnの手札の枚数は0枚です。Bobの手札の枚数は5枚です。Mikeの手札の枚数は0枚です。Maryの手札の枚数は5枚です。Emmaの手札の枚数は0枚です。/, output)
     assert_match(/Bobが1位、Maryが1位、Johnが3位、Mikeが3位、Emmaが3位です。/, output)
   end
+
+  # デッキの並び順: [A, JOKER]
+  # プレイヤー数: 2
+  # 名前: John, Bob
+  def test_joker_vs_a
+    test_deck = Deck.new([Card.new(:ハート, :A), Card.new(:ジョーカー, :JOKER)], false)
+    output = custom_setup(test_deck, "2\nJohn\nBob\n")
+
+    assert_match(/Johnのカードはジョーカーです。/, output)
+    assert_match(/BobのカードはハートのAです。/, output)
+    assert_match(/Johnが勝ちました。Johnはカードを2枚もらいました。/, output)
+  end
+
+  # デッキの並び順: [A, A]
+  # プレイヤー数: 2
+  # 名前: John, Bob
+  def test_spade_a_vs_other_a
+    test_deck = Deck.new([Card.new(:ダイヤ, :A), Card.new(:スペード, :A)], false)
+    output = custom_setup(test_deck, "2\nJohn\nBob\n")
+
+    assert_match(/Johnのカードは世界一です。/, output)
+    assert_match(/BobのカードはダイヤのAです。/, output)
+    assert_match(/Johnが勝ちました。Johnはカードを2枚もらいました。/, output)
+  end
+
+  # デッキの並び順: [A, Q]
+  # プレイヤー数: 2
+  # 名前: John, Bob
+  def test_spade_a_vs_other
+    test_deck = Deck.new([Card.new(:スペード, :A), Card.new(:クラブ, :Q)], false)
+    output = custom_setup(test_deck, "2\nJohn\nBob\n")
+
+    assert_match(/JohnのカードはクラブのQです。/, output)
+    assert_match(/BobのカードはスペードのAです。/, output)
+    assert_match(/Bobが勝ちました。Bobはカードを2枚もらいました。/, output)
+  end
+
+  # デッキの並び順: [A, A, JOKER]
+  # プレイヤー数: 3
+  # 名前: John, Bob, Mike
+  def test_spade_a_vs_a_vs_joker
+    test_deck = Deck.new([Card.new(:スペード, :A), Card.new(:クラブ, :A), Card.new(:ジョーカー, :JOKER)], false)
+    output = custom_setup(test_deck, "3\nJohn\nBob\nMike\n")
+
+    assert_match(/Johnのカードはジョーカーです。/, output)
+    assert_match(/BobのカードはクラブのAです。/, output)
+    assert_match(/MikeのカードはスペードのAです。/, output)
+    assert_match(/Johnが勝ちました。Johnはカードを3枚もらいました。/, output)
+  end
 end
 
 class DeckTest < MiniTest::Test
@@ -114,14 +152,14 @@ class DeckTest < MiniTest::Test
     @deck = Deck.new
   end
 
-  # デッキのカード枚数は52
-  def test_deck_has_52_cards
-    assert_equal 52, @deck.cards.size
+  # デッキのカード枚数は53
+  def test_deck_has_53_cards
+    assert_equal 53, @deck.cards.size
   end
 end
 
 class CardTest < MiniTest::Test
-  # J, Q, K, Aがそれぞれ11, 12, 13, 99という値を持っている
+  # J, Q, K, A, JOKERがそれぞれ11, 12, 13, 99, 999という値を持っている
   def test_card_rank_has_expected_value
     card_2 = Card.new(:ダイヤ, 2)
     assert_equal 2, card_2.value
@@ -133,5 +171,7 @@ class CardTest < MiniTest::Test
     assert_equal 13, card_k.value
     card_a = Card.new(:ダイヤ, :A)
     assert_equal 99, card_a.value
+    card_a = Card.new(:ジョーカー, :JOKER)
+    assert_equal 999, card_a.value
   end
 end
