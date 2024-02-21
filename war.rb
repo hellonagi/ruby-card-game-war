@@ -7,9 +7,10 @@ class Game
   end
 
   def start_game
+    # プレイヤー数を指定
+    register_player_count
+
     # プレイヤー数だけPlayerインスタンスを作成
-    print 'プレイヤーの人数を入力してください（2〜5）: '
-    @player_count = gets.chomp.to_i
     make_players
 
     # 開始メッセージ
@@ -23,6 +24,18 @@ class Game
 
     # 終了メッセージ
     puts '戦争を終了します。'
+  end
+
+  def register_player_count
+    loop do
+      print 'プレイヤーの人数を入力してください（2〜5）: '
+      input = gets.chomp
+      if input.match?(/\A[2-5]\z/)
+        @player_count = input.to_i
+        break
+      end
+      puts '2～5の数字を入力してください。'
+    end
   end
 
   def make_players
