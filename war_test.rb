@@ -15,7 +15,7 @@ class GameTest < MiniTest::Test
     output
   end
 
-  # デッキの並び順: [2, 3, ..., J, Q, K, A]*4
+  # デッキの並び順: [JOKER] + [2, 3, ..., J, Q, K, A]*4
   # プレイヤー数: 2
   # 名前: たろう, はなこ
   # 26回引き分けして終了
@@ -30,7 +30,7 @@ class GameTest < MiniTest::Test
     $stdin = STDIN
   end
 
-  # デッキの並び順: [2, 3, ..., J, Q, K, A]*4
+  # デッキの並び順: [JOKER] + [2, 3, ..., J, Q, K, A]*4
   # プレイヤー数: 4
   # 名前: たろう, じろう, さぶろう, しろう
   # 13回引き分けして終了
@@ -107,6 +107,21 @@ class GameTest < MiniTest::Test
     assert_match(/Johnの手札の枚数は0枚です。Bobの手札の枚数は5枚です。Mikeの手札の枚数は0枚です。Maryの手札の枚数は5枚です。Emmaの手札の枚数は0枚です。/, output)
     assert_match(/Bobが1位、Maryが1位、Johnが3位、Mikeが3位、Emmaが3位です。/, output)
   end
+
+  # デッキの並び順: [A, JOKER]
+  # プレイヤー数: 2
+  # 名前: John, Bob
+  def test_joker
+    test_deck = Deck.new([Card.new(:ハート, :A), Card.new(:ジョーカー, :JOKER)], false)
+    output = custom_setup(test_deck, "2\nJohn\nBob\n")
+
+    assert_match(/JohnのカードはジョーカーのJOKERです。/, output)
+    assert_match(/BobのカードはハートのAです。/, output)
+    assert_match(/Johnが勝ちました。Johnはカードを2枚もらいました。/, output)
+    assert_match(/Bobの手札がなくなりました。/, output)
+    assert_match(/Johnの手札の枚数は2枚です。Bobの手札の枚数は0枚です。/, output)
+    assert_match(/Johnが1位、Bobが2位です。/, output)
+  end
 end
 
 class DeckTest < MiniTest::Test
@@ -114,14 +129,14 @@ class DeckTest < MiniTest::Test
     @deck = Deck.new
   end
 
-  # デッキのカード枚数は52
-  def test_deck_has_52_cards
-    assert_equal 52, @deck.cards.size
+  # デッキのカード枚数は53
+  def test_deck_has_53_cards
+    assert_equal 53, @deck.cards.size
   end
 end
 
 class CardTest < MiniTest::Test
-  # J, Q, K, Aがそれぞれ11, 12, 13, 99という値を持っている
+  # J, Q, K, A, JOKERがそれぞれ11, 12, 13, 99, 999という値を持っている
   def test_card_rank_has_expected_value
     card_2 = Card.new(:ダイヤ, 2)
     assert_equal 2, card_2.value
@@ -133,5 +148,7 @@ class CardTest < MiniTest::Test
     assert_equal 13, card_k.value
     card_a = Card.new(:ダイヤ, :A)
     assert_equal 99, card_a.value
+    card_a = Card.new(:ジョーカー, :JOKER)
+    assert_equal 999, card_a.value
   end
 end

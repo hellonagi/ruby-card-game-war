@@ -176,6 +176,7 @@ class Deck
 
   def build_deck
     deck = []
+    deck << Card.new(:ジョーカー, :JOKER)
     SUITS.each do |suit|
       RANKS.each do |rank|
         deck << Card.new(suit, rank)
@@ -205,7 +206,7 @@ class Card
   attr_reader :suit, :rank, :value
 
   # カードの絵札を強さとして数値に変換するためのハッシュ
-  CARD_HASH = { A: 99, J: 11, Q: 12, K: 13 }
+  CARD_HASH = { A: 99, J: 11, Q: 12, K: 13, JOKER: 999 }
 
   def initialize(suit, rank)
     @suit = suit
