@@ -72,25 +72,29 @@ class Game
     has_spade_a = false
     has_joker = false
 
-    # 場札に
     @players.each do |player|
       draw_card = player.hand.pop
+      # Aの数をカウント、スペードのAの有無をチェック
       if draw_card.rank == :A
         a_count += 1
         has_spade_a = true if draw_card.suit == :スペード
       end
+      # ジョーカーの有無をチェック
       has_joker = true if draw_card.suit == :ジョーカー
 
       stacked_cards << draw_card
       battle_cards << draw_card
     end
 
+    # スペードのAが「世界一」の条件を満たすかチェック
     no_1 = a_count >= 2 && has_spade_a && !has_joker
+
+    # 条件に応じて出力を切り替える
     battle_cards.each_with_index do |card, index|
       card_name = "#{card.suit}の#{card.rank}"
       if no_1 && card.rank == :A && card.suit == :スペード
         card_name = '世界一'
-      elsif card.rank ==:JOKER
+      elsif card.rank == :JOKER
         card_name = 'ジョーカー'
       end
       puts "#{@players[index].name}のカードは#{card_name}です。"
