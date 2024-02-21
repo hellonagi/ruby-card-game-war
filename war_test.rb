@@ -1,21 +1,64 @@
 require 'minitest/autorun'
+require 'minitest/mock'
 require_relative 'war'
 
+# GameTestでは出力結果に一貫性を持たせるためにデッキのシャッフルはしない
+# Deck.newの第二引数をfalseと指定することでシャッフルを無効
 class GameTest < MiniTest::Test
-  def setup
-    @game = Game.new
+  # 初期状態ののしデッキ
+  # 26回引き分けが起きて終了
+  # デッキの並び順: [2, 3, ..., J, Q, K, A]*4
+  def test_start_game_with_test_deck_1
+    test_deck = Deck.new(nil, false)
+    game = Game.new(test_deck)
+
+    output = capture_io do
+      game.start_game
+    end.first
+
+    assert_match(/プレイヤー1の手札がなくなりました。/, output)
+    assert_match(/プレイヤー2の手札がなくなりました。/, output)
+    assert_match(/無効試合です。/, output)
   end
 
-  def test_start_game
-    assert_output("戦争を開始します。\nカードが配られました。\n") { @game.start_game }
+  # プレイヤー1が勝利
+  # デッキの並び順: [3, 8]
+  def test_start_game_with_test_deck_2
+    test_deck = Deck.new([Card.new(:ダイヤ, 3), Card.new(:ダイヤ, 8)], false)
+    game = Game.new(test_deck)
 
-    # プレイヤー数は2人か
-    assert_equal 2, @game.players.size
+    output = capture_io do
+      game.start_game
+    end.first
 
-    # プレイヤーの手札数はそれぞれ26枚か
-    @game.players.each do |player|
-      assert_equal 26, player.hand.size
-    end
+    assert_match(/プレイヤー1が勝ちました。/, output)
+  end
+
+  # プレイヤー2が勝利
+  # デッキの並び順: [A, J]
+  def test_start_game_with_mini_deck_3
+    test_deck = Deck.new([Card.new(:ダイヤ, :A), Card.new(:ダイヤ, :J)], false)
+    game = Game.new(test_deck)
+
+    output = capture_io do
+      game.start_game
+    end.first
+
+    assert_match(/プレイヤー2が勝ちました。/, output)
+  end
+
+  # 引き分けしてからプレイヤー1が勝利
+  # デッキの並び順: [Q, 7, Q, 10]
+  def test_start_game_with_mini_deck_4
+    test_deck = Deck.new([Card.new(:スペード, :Q), Card.new(:ダイヤ, 7), Card.new(:クラブ, :Q), Card.new(:ハート, 10)], false)
+    game = Game.new(test_deck)
+
+    output = capture_io do
+      game.start_game
+    end.first
+
+    assert_match(/引き分けです。/, output)
+    assert_match(/プレイヤー1が勝ちました。/, output)
   end
 end
 
@@ -24,14 +67,14 @@ class DeckTest < MiniTest::Test
     @deck = Deck.new
   end
 
-  # デッキのカード枚数は52か
+  # デッキのカード枚数は52
   def test_deck_has_52_cards
     assert_equal 52, @deck.cards.size
   end
 end
 
 class CardTest < MiniTest::Test
-  # J,Q,K,Aがそれぞれ11, 12, 13, 99という値を持っているか
+  # J, Q, K, Aがそれぞれ11, 12, 13, 99という値を持っている
   def test_card_rank_has_expected_value
     card_2 = Card.new(:ダイヤ, 2)
     assert_equal 2, card_2.value
