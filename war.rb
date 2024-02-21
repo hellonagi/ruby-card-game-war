@@ -141,7 +141,7 @@ end
 class Card
   attr_reader :suit, :rank, :value
 
-  # カードの強さを判定するためのハッシュ
+  # カードの絵札を強さとして数値に変換するためのハッシュ
   CARD_HASH = { A: 99, J: 11, Q: 12, K: 13 }
 
   def initialize(suit, rank)
