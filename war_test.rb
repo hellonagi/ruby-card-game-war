@@ -18,7 +18,6 @@ class GameTest < MiniTest::Test
   # デッキの並び順: [JOKER] + [2, 3, ..., J, Q, K, A]*4
   # プレイヤー数: 4
   # 名前: たろう, じろう, さぶろう, しろう
-  # 13回引き分けして終了
   def test_start_game_with_4_players_without_shuffle
     test_deck = Deck.new(nil, false)
     output = custom_setup(test_deck, "4\nたろう\nじろう\nさぶろう\nしろう\n")
