@@ -51,12 +51,11 @@ class Game
     stacked_cards = []
 
     # 誰かの手札がなくなるまでゲームを続ける
-    loop do
+    until empty_hand?
       puts '戦争！'
       battle_cards = draw_battle_cards(stacked_cards)
       winner = decide_winner(battle_cards)
       add_stacked_cards_to_winner(winner, stacked_cards)
-      break if empty_hand_exists
     end
 
     add_taken_cards_to_hand
@@ -104,7 +103,7 @@ class Game
   end
 
   # 手札がなくなったプレイヤーがいないか確認
-  def empty_hand_exists
+  def empty_hand?
     empty_exists = false
     @players.each do |player|
       # 手札が0枚のとき
